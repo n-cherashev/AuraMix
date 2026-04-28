@@ -3,7 +3,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 import { getInstalledPwaSurface } from '@/shared/lib/platform/use-installed-pwa'
 
-const installDeferred = ref<BeforeInstallPromptEvent | null>(null)
+/** Chromium покажет свой UI установки сам, если не вызывать preventDefault на beforeinstallprompt — только отмечаем факт. */
+const installPromotionSeen = ref(false)
 
 const { needRefresh, offlineReady, updateServiceWorker } = useRegisterSW({ immediate: true })
 
@@ -15,9 +16,8 @@ function bumpSurface() {
   surfaceTick.value += 1
 }
 
-function onBeforeInstall(e: Event) {
-  e.preventDefault()
-  installDeferred.value = e as BeforeInstallPromptEvent
+function onBeforeInstallPrompt() {
+  installPromotionSeen.value = true
 }
 
 onMounted(() => {
@@ -31,13 +31,13 @@ onMounted(() => {
       /* ignore */
     }
   }
-  window.addEventListener('beforeinstallprompt', onBeforeInstall)
+  window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
 })
 
 onUnmounted(() => {
   unsubscribeMedia.forEach((fn) => fn())
   unsubscribeMedia = []
-  window.removeEventListener('beforeinstallprompt', onBeforeInstall)
+  window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
 })
 
 const showUpdateBanner = computed(() => {
@@ -52,37 +52,47 @@ const showOfflineInPwa = computed(() => {
   return getInstalledPwaSurface()
 })
 
-async function installApp() {
-  const evt = installDeferred.value
-  if (!evt) return
-  await evt.prompt()
-  await evt.userChoice
-  installDeferred.value = null
-}
+/** Safari (iOS/macOS): своего beforeinstallprompt нет — подсказка «Поделиться → На экран Домой». */
+const showSafariInstallHint = computed(() => {
+  surfaceTick.value
+  if (getInstalledPwaSurface()) return false
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua)
+  const isIOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 1)
+  return isSafari && isIOS
+})
+
+/** Chromium: после выполнения эвристик (≈30 с на странице + был клик) показывается иконка установки в адресной строке; мы дублируем короткую подсказку. */
+const showChromiumInstallHint = computed(() => {
+  surfaceTick.value
+  if (getInstalledPwaSurface()) return false
+  if (showSafariInstallHint.value) return false
+  return installPromotionSeen.value
+})
 
 async function applyUpdate() {
   await updateServiceWorker(true)
-}
-
-function dismissInstall() {
-  installDeferred.value = null
 }
 </script>
 
 <template>
   <div class="mb-4 flex flex-col gap-2">
     <div
-      v-if="installDeferred"
-      class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950"
+      v-if="showChromiumInstallHint"
+      class="flex flex-wrap items-center gap-3 rounded-xl border border-indigo-200 bg-indigo-50/90 px-4 py-3 text-sm text-indigo-950"
       role="status"
     >
-      <span>Установите AuraMix как приложение — быстрый доступ с главного экрана.</span>
-      <div class="flex gap-2">
-        <button type="button" class="rounded-lg bg-indigo-600 px-3 py-2 text-white" @click="installApp">Установить</button>
-        <button type="button" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-700" @click="dismissInstall">
-          Позже
-        </button>
-      </div>
+      <span>
+        Приложение можно установить: нажмите значок установки в адресной строке Chrome или Edge (или меню «Приложение» → «Установить AuraMix»).
+      </span>
+    </div>
+
+    <div
+      v-if="showSafariInstallHint"
+      class="rounded-xl border border-indigo-200 bg-indigo-50/90 px-4 py-3 text-sm text-indigo-950"
+      role="status"
+    >
+      На iPhone и iPad: <strong>Поделиться</strong> → <strong>На экран «Домой»</strong>. На Mac в Safari — меню «Файл» → «Добавить в Dock» (если доступно).
     </div>
 
     <div
