@@ -26,9 +26,11 @@ async function sendStubSync() {
 
 <template>
   <section class="grid gap-4">
-    <h2 class="text-xl font-medium">Mixer</h2>
+    <h2 class="m-0 text-xl font-medium">Mixer</h2>
     <MixerLayout :tracks="trackStore.tracks" />
     <TimerPanel />
-    <button class="w-fit rounded bg-emerald-600 px-3 py-2 text-sm text-white" @click="sendStubSync">Queue sync payload</button>
+    <button type="button" class="w-fit cursor-pointer rounded-lg border-0 bg-emerald-600 px-3 py-2 text-sm text-white" @click="sendStubSync">
+      Queue sync payload
+    </button>
   </section>
 </template>

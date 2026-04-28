@@ -1,9 +1,7 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/container-queries";
 
-body {
-  margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+@layer base {
+  body {
+    @apply m-0 min-h-screen bg-slate-100 font-sans text-slate-900 antialiased;
+  }
 }

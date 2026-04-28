@@ -16,10 +16,14 @@ const totalMinutes = computed(() => sessionStore.sessions.reduce((acc, item) => 
 
 <template>
   <section class="grid gap-4">
-    <h2 class="text-xl font-medium">Sessions</h2>
-    <p class="text-sm text-slate-700">Total focused minutes: {{ totalMinutes }}</p>
-    <ul class="grid gap-2">
-      <li v-for="session in sessionStore.sessions" :key="session.id" class="rounded border p-3">
+    <h2 class="m-0 text-xl font-medium">Sessions</h2>
+    <p class="m-0 text-sm text-slate-700">Total focused minutes: {{ totalMinutes }}</p>
+    <ul class="m-0 grid list-none gap-2 p-0">
+      <li
+        v-for="session in sessionStore.sessions"
+        :key="session.id"
+        class="rounded-xl border border-slate-300 bg-white p-3"
+      >
         {{ session.mode }} - {{ session.durationMinutes }} min - {{ new Date(session.finishedAt).toLocaleString() }}
       </li>
     </ul>
