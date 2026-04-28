@@ -4,7 +4,7 @@ import SessionsPage from '@/pages/sessions-page.vue'
 import SettingsPage from '@/pages/settings-page.vue'
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'mixer', component: MixerPage },
     { path: '/sessions', name: 'sessions', component: SessionsPage },

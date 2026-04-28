@@ -14,10 +14,6 @@ export const useTimerStore = defineStore('timer', {
       this.isRunning = true
       this.remainingSeconds = seconds
     },
-    tick() {
-      if (this.remainingSeconds <= 0) return
-      this.remainingSeconds -= 1
-    },
     stop() {
       this.isRunning = false
       this.remainingSeconds = 0

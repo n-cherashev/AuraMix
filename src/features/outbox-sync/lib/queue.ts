@@ -3,6 +3,16 @@ import { postSyncBatch } from '@/features/outbox-sync/api/sync-client'
 import { readOutboxQueue, saveOutboxQueue } from '@/shared/lib/idb'
 import { Result, type Result as ResultType } from '@/shared/lib/result'
 
+let onlineListenerAttached = false
+
+export function ensureOnlineSyncListener(): void {
+  if (onlineListenerAttached || typeof window === 'undefined') return
+  onlineListenerAttached = true
+  window.addEventListener('online', () => {
+    void flushQueue()
+  })
+}
+
 export async function enqueueSync(payload: string): Promise<ResultType<number>> {
   const queueResult = await readOutboxQueue()
   if (!queueResult.ok) return queueResult
@@ -26,8 +36,7 @@ export async function flushQueue(): Promise<ResultType<number>> {
   return Result.ok(queueResult.data.length)
 }
 
+/** @deprecated Используйте ensureOnlineSyncListener один раз при старте приложения */
 export function registerOnlineSync(): void {
-  window.addEventListener('online', () => {
-    void flushQueue()
-  })
+  ensureOnlineSyncListener()
 }

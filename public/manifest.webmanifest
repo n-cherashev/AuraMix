@@ -2,13 +2,14 @@
   "name": "AuraMix",
   "short_name": "AuraMix",
   "description": "Local sound mixer and focus timer",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#111827",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "./vite.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

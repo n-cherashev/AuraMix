@@ -15,7 +15,11 @@ export default defineConfig({
     vue(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      injectRegister: false,
+      registerType: 'prompt',
+      devOptions: {
+        enabled: false,
+      },
       srcDir: 'src/app',
       filename: 'sw.ts',
       strategies: 'injectManifest',
@@ -27,16 +31,16 @@ export default defineConfig({
         theme_color: '#111827',
         background_color: '#111827',
         display: 'standalone',
-        start_url: '/',
-        scope: '/',
+        start_url: './',
+        scope: './',
         icons: [
           {
-            src: '/vite.svg',
+            src: './vite.svg',
             sizes: 'any',
             type: 'image/svg+xml',
           },
           {
-            src: '/vite.svg',
+            src: './vite.svg',
             sizes: 'any',
             type: 'image/svg+xml',
           },

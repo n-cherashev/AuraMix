@@ -1,4 +1,5 @@
 /// <reference lib="WebWorker" />
+/// <reference types="vite/client" />
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
@@ -12,5 +13,6 @@ registerRoute(({ request }) => request.destination === 'audio', new CacheFirst({
 registerRoute(({ url }) => url.pathname.endsWith('.json'), new NetworkFirst({ cacheName: 'preset-cache' }))
 registerRoute(({ request }) => request.destination === 'script' || request.destination === 'style', new StaleWhileRevalidate({ cacheName: 'ui-cache' }))
 
-const handler = createHandlerBoundToURL('/index.html')
+const indexUrl = new URL('index.html', self.location.origin + import.meta.env.BASE_URL).pathname
+const handler = createHandlerBoundToURL(indexUrl)
 registerRoute(new NavigationRoute(handler))

@@ -23,6 +23,8 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - run: npm run build
+      - name: GitHub Pages SPA fallback (artifact parity)
+        run: cp dist/index.html dist/404.html
       - uses: actions/upload-artifact@v4
         with:
           name: dist

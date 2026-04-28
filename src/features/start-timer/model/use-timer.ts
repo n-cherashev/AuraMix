@@ -4,27 +4,47 @@ import { timerPresets } from '@/features/start-timer/lib/timer-presets'
 
 export function useTimer() {
   const timerStore = useTimerStore()
-  const intervalId = ref<number | null>(null)
+  const intervalId = ref<ReturnType<typeof setInterval> | null>(null)
+  /** Время окончания по часам (устойчиво к нескольким интервалам и троттлингу вкладки). */
+  const endsAtMs = ref(0)
+
+  function clearTickInterval() {
+    if (intervalId.value !== null) {
+      clearInterval(intervalId.value)
+      intervalId.value = null
+    }
+  }
+
+  function stopTimer() {
+    clearTickInterval()
+    endsAtMs.value = 0
+    timerStore.stop()
+  }
+
+  function syncFromDeadline() {
+    if (!timerStore.isRunning || endsAtMs.value <= 0) return
+
+    const left = Math.max(0, Math.ceil((endsAtMs.value - Date.now()) / 1000))
+    timerStore.$patch({ remainingSeconds: left })
+
+    if (left <= 0) {
+      stopTimer()
+    }
+  }
 
   function startTimer(presetId: string) {
     const preset = timerPresets.find((item) => item.id === presetId)
     if (!preset) return
 
-    timerStore.start(preset.minutes * 60)
-    timerStore.selectedPresetId = preset.id
-    intervalId.value = window.setInterval(() => {
-      timerStore.tick()
-      if (timerStore.remainingSeconds > 0) return
-      stopTimer()
-    }, 1000)
-  }
+    clearTickInterval()
 
-  function stopTimer() {
-    if (intervalId.value !== null) {
-      window.clearInterval(intervalId.value)
-      intervalId.value = null
-    }
-    timerStore.stop()
+    const totalSeconds = preset.minutes * 60
+    endsAtMs.value = Date.now() + totalSeconds * 1000
+    timerStore.selectedPresetId = preset.id
+    timerStore.start(totalSeconds)
+
+    syncFromDeadline()
+    intervalId.value = window.setInterval(syncFromDeadline, 1000)
   }
 
   onBeforeUnmount(stopTimer)
