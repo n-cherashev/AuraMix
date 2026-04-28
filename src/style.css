@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/container-queries";
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+}
